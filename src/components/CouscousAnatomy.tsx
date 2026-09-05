@@ -1,6 +1,9 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+gsap.registerPlugin(ScrollTrigger);
 interface Ingredient {
   name: string;
   desc: string;
@@ -105,18 +108,59 @@ function AnatomyNode({ scrollYProgress, index, total, ingredient, side }: Anatom
 
 /** Version desktop : section épinglée, plat central ancré, ingrédients qui s'écartent au scroll. */
 function DesktopAnatomy() {
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const pinContainerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const { scrollYProgress } = useScroll({
-    target: wrapperRef,
+    target: triggerRef,
     offset: ["start start", "end end"],
   });
 
   const dishScale = useTransform(scrollYProgress, [0, 0.15], [0.94, 1]);
   const dishY = useTransform(scrollYProgress, [0, 1], [0, -14]);
 
+  useEffect(() => {
+    const trigger = triggerRef.current;
+    const pinContainer = pinContainerRef.current;
+    const video = videoRef.current;
+
+    if (!trigger || !pinContainer || !video) return;
+
+    let triggerInstance: ScrollTrigger | null = null;
+
+    const initScrollVideo = () => {
+      if (Number.isNaN(video.duration)) return;
+
+      triggerInstance = ScrollTrigger.create({
+        trigger: trigger,
+        pin: pinContainer,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 0.1,
+        animation: gsap.fromTo(
+          video,
+          { currentTime: 0 },
+          { currentTime: video.duration, ease: "none" }
+        ),
+      });
+    };
+
+    if (video.readyState >= 1) {
+      initScrollVideo();
+    } else {
+      video.addEventListener("loadedmetadata", initScrollVideo);
+    }
+
+    return () => {
+      video.removeEventListener("loadedmetadata", initScrollVideo);
+      if (triggerInstance) triggerInstance.kill();
+    };
+  }, []);
+
   return (
-    <div ref={wrapperRef} className="hidden lg:block relative h-[280vh]">
-      <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
+    <div ref={triggerRef} className="hidden lg:block relative h-[300vh]">
+      <div ref={pinContainerRef} className="w-full h-screen flex flex-col justify-center overflow-hidden">
         <div className="flex items-center gap-0 max-w-[1440px] mx-auto w-full px-20">
           <div className="flex-1 flex flex-col justify-around h-[420px]">
             {LEFT_INGREDIENTS.map((ing, i) => (
@@ -133,10 +177,13 @@ function DesktopAnatomy() {
 
           <motion.div style={{ scale: dishScale, y: dishY }} className="flex-none flex flex-col items-center">
             <div className="w-[280px] h-[380px] bg-[#E8DFD0]" style={{ clipPath: "url(#moorish-arch)" }}>
-              <img
-                src="https://images.unsplash.com/photo-1661083098412-054431ab7112?w=560&h=760&fit=crop&auto=format"
-                alt="Couscous royal servi dans un plat en terre cuite, vapeur montante"
-                className="w-full h-full object-cover"
+              <video
+                ref={videoRef}
+                src="/Video cousco.mp4"
+                muted
+                playsInline
+                preload="auto"
+                className="w-full h-full object-cover pointer-events-none"
               />
             </div>
             <div className="mt-4 text-center">
@@ -170,10 +217,14 @@ function MobileAnatomy() {
   return (
     <div className="lg:hidden flex flex-col gap-6">
       <div className="flex flex-col items-center mb-4">
+        {/* Remplacement par la vidéo en autoplay pour mobile */}
         <div className="w-[220px] h-[280px] bg-[#E8DFD0]" style={{ clipPath: "url(#moorish-arch)" }}>
-          <img
-            src="https://images.unsplash.com/photo-1661083098412-054431ab7112?w=560&h=760&fit=crop&auto=format"
-            alt="Couscous royal servi dans un plat en terre cuite, vapeur montante"
+          <video
+            src="/Video cousco.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
             className="w-full h-full object-cover"
           />
         </div>
