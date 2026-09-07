@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
+
 interface Ingredient {
   name: string;
   desc: string;
@@ -44,7 +45,6 @@ const ALL_INGREDIENTS = [
   ...RIGHT_INGREDIENTS.map((i) => ({ ...i, side: "right" as const })),
 ];
 
-/** Fenêtre de révélation propre à un ingrédient, répartie sur la durée du pin. */
 function getRevealWindow(index: number, total: number) {
   const start = (index / total) * 0.62;
   const end = start + 0.34;
@@ -59,11 +59,6 @@ interface AnatomyNodeProps {
   side: "left" | "right";
 }
 
-/**
- * Un ingrédient + son indicateur de liaison filaire.
- * Chaque nœud possède sa propre fenêtre de progression pour créer un
- * étagement (les six éléments ne se révèlent pas tous en même temps).
- */
 function AnatomyNode({ scrollYProgress, index, total, ingredient, side }: AnatomyNodeProps) {
   const { start, end } = getRevealWindow(index, total);
   const opacity = useTransform(scrollYProgress, [start, start + 0.08, end], [0, 1, 1]);
@@ -106,7 +101,6 @@ function AnatomyNode({ scrollYProgress, index, total, ingredient, side }: Anatom
   );
 }
 
-/** Version desktop : section épinglée, plat central ancré, ingrédients qui s'écartent au scroll. */
 function DesktopAnatomy() {
   const triggerRef = useRef<HTMLDivElement>(null);
   const pinContainerRef = useRef<HTMLDivElement>(null);
@@ -117,8 +111,8 @@ function DesktopAnatomy() {
     offset: ["start start", "end end"],
   });
 
-  const dishScale = useTransform(scrollYProgress, [0, 0.15], [0.94, 1]);
-  const dishY = useTransform(scrollYProgress, [0, 1], [0, -14]);
+  const dishScale = useTransform(scrollYProgress, [0, 0.15], [0.94, 1.05]);
+  const dishY = useTransform(scrollYProgress, [0, 1], [0, -10]);
 
   useEffect(() => {
     const trigger = triggerRef.current;
@@ -130,18 +124,25 @@ function DesktopAnatomy() {
     let triggerInstance: ScrollTrigger | null = null;
 
     const initScrollVideo = () => {
-      if (Number.isNaN(video.duration)) return;
+      // Sécurité : on s'assure que la durée est un chiffre valide
+      if (Number.isNaN(video.duration) || video.duration === 0) return;
+
+      // --- PARAMÈTRE IMPORTANT ---
+      // On coupe la vidéo 1.5 seconde avant la fin pour éviter la transition sombre
+      // Si la vidéo coupe trop tôt, passe à 1.0. Si on voit encore le noir, passe à 2.0.
+      const SECONDES_A_COUPER_A_LA_FIN = 1.5; 
+      const targetTime = Math.max(0, video.duration - SECONDES_A_COUPER_A_LA_FIN);
 
       triggerInstance = ScrollTrigger.create({
         trigger: trigger,
         pin: pinContainer,
         start: "top top",
         end: "bottom bottom",
-        scrub: 0.1,
+        scrub: 0.1, // Lissage premium (ni trop lent, ni haché)
         animation: gsap.fromTo(
           video,
           { currentTime: 0 },
-          { currentTime: video.duration, ease: "none" }
+          { currentTime: targetTime, ease: "none" }
         ),
       });
     };
@@ -158,11 +159,13 @@ function DesktopAnatomy() {
     };
   }, []);
 
-  return (
-    <div ref={triggerRef} className="hidden lg:block relative h-[300vh]">
+return (
+    <div ref={triggerRef} className="hidden lg:block relative h-[250vh]">
+      {/* Hauteur passée à 400vh pour étirer la timeline et adoucir la vitesse d'animation de la vidéo */}
       <div ref={pinContainerRef} className="w-full h-screen flex flex-col justify-center overflow-hidden">
-        <div className="flex items-center gap-0 max-w-[1440px] mx-auto w-full px-20">
-          <div className="flex-1 flex flex-col justify-around h-[420px]">
+        <div className="flex items-center gap-4 xl:gap-12 max-w-[1440px] mx-auto w-full px-12 xl:px-20">
+          
+          <div className="flex-1 flex flex-col justify-around h-[500px]">
             {LEFT_INGREDIENTS.map((ing, i) => (
               <AnatomyNode
                 key={ing.name}
@@ -176,25 +179,26 @@ function DesktopAnatomy() {
           </div>
 
           <motion.div style={{ scale: dishScale, y: dishY }} className="flex-none flex flex-col items-center">
-            <div className="w-[280px] h-[380px] bg-[#E8DFD0]" style={{ clipPath: "url(#moorish-arch)" }}>
+            {/* TAILLE AUGMENTÉE : w-[380px] h-[520px] sur desktop, encore plus grand sur écran XL */}
+            <div className="relative w-[500px] xl:w-[720px] aspect-video">
               <video
                 ref={videoRef}
-                src="/Video cousco.mp4"
+                src="/Video cousco5.webm"
                 muted
                 playsInline
                 preload="auto"
-                className="w-full h-full object-cover pointer-events-none"
+                className="w-full h-full object-cover mix-blend-multiply pointer-events-none"
               />
             </div>
-            <div className="mt-4 text-center">
-              <p className="font-sans text-[9px] tracking-[0.28em] uppercase text-muted-foreground">
+            <div className="mt-8 text-center">
+              <p className="font-sans text-[10px] tracking-[0.28em] uppercase text-muted-foreground">
                 Couscous Royal
               </p>
-              <p className="font-serif text-[13px] italic text-primary mt-0.5">Plat Signature</p>
+              <p className="font-serif text-[15px] italic text-primary mt-1">Plat Signature</p>
             </div>
           </motion.div>
 
-          <div className="flex-1 flex flex-col justify-around h-[420px]">
+          <div className="flex-1 flex flex-col justify-around h-[500px]">
             {RIGHT_INGREDIENTS.map((ing, i) => (
               <AnatomyNode
                 key={ing.name}
@@ -212,23 +216,23 @@ function DesktopAnatomy() {
   );
 }
 
-/** Fallback mobile : cartes verticales légères, révélées au passage dans le viewport. */
 function MobileAnatomy() {
   return (
-    <div className="lg:hidden flex flex-col gap-6">
-      <div className="flex flex-col items-center mb-4">
-        {/* Remplacement par la vidéo en autoplay pour mobile */}
-        <div className="w-[220px] h-[280px] bg-[#E8DFD0]" style={{ clipPath: "url(#moorish-arch)" }}>
+    <div className="lg:hidden flex flex-col gap-8 px-4">
+      <div className="flex flex-col items-center mb-6 mt-8">
+        {/* TAILLE MOBILE AUGMENTÉE : w-[280px] h-[380px] */}
+        <div className="w-[380px] h-[380px] bg-[#E8DFD0] overflow-hidden shadow-warm" style={{ clipPath: "url(#moorish-arch)" }}>
           <video
             src="/Video cousco.mp4"
             autoPlay
             loop
             muted
             playsInline
-            className="w-full h-full object-cover"
+            /* Même système de recadrage sur mobile pour cacher la barre */
+            className="w-full h-full object-cover object-[center_20%] scale-[1.12] pointer-events-none"
           />
         </div>
-        <p className="font-serif text-[13px] italic text-primary mt-4">Plat Signature</p>
+        <p className="font-serif text-[14px] italic text-primary mt-5">Plat Signature</p>
       </div>
 
       {ALL_INGREDIENTS.map((ing, i) => (
@@ -253,13 +257,13 @@ function MobileAnatomy() {
 
 export function CouscousAnatomy() {
   return (
-    <section className="py-28 px-6 lg:px-0" id="savoirfaire" aria-labelledby="savoirfaire-heading">
-      <div className="max-w-[1440px] mx-auto lg:px-20">
+    <section className="py-28 px-0 lg:px-0 bg-[#FAF7F2]" id="savoirfaire" aria-labelledby="savoirfaire-heading">
+      <div className="max-w-[1440px] mx-auto px-6 lg:px-20">
         <div className="text-center mb-20">
           <p className="font-sans text-[10px] tracking-[0.38em] uppercase text-primary mb-5">Savoir-Faire</p>
           <h2
             id="savoirfaire-heading"
-            className="font-serif text-[42px] md:text-[56px] font-light text-foreground italic leading-tight mb-5"
+            className="font-serif text-[42px] md:text-[56px] font-light text-[#3E4B39] italic leading-tight mb-5"
           >
             L'Art du Couscous
           </h2>

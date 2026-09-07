@@ -113,7 +113,7 @@ export function StepQuote({ api }: { api: QuoteBuilderApi }) {
               value={state.contact.phone}
               onChange={(e) => updateContact({ phone: e.target.value })}
               className="w-full border border-border bg-background font-sans text-[13px] px-3 py-2.5 focus:outline-none focus:border-primary transition-colors"
-              placeholder="06 00 00 00 00"
+              placeholder="06 68 68 51 05"
             />
           </div>
         </div>
