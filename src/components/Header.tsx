@@ -94,58 +94,76 @@ export function Header() {
             role="dialog"
             aria-modal="true"
             aria-label="Menu de navigation"
-            className="fixed inset-0 bg-background z-50 flex flex-col"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            /* Fond crème 100% opaque, z-index au sommet absolu */
+            className="fixed inset-0 w-screen h-screen bg-[#FAF7F2] z-[9999] flex flex-col justify-between"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
           >
-            <div className="h-[68px] flex items-center justify-between px-6 border-b border-border shrink-0">
-              <span className="font-sans text-[10px] tracking-[0.28em] uppercase text-foreground">
-                {SITE.name}
-              </span>
-              <button ref={closeButtonRef} type="button" onClick={() => setOpen(false)} aria-label="Fermer le menu">
-                <X size={22} aria-hidden="true" />
+            {/* Barre supérieure avec bouton fermeture */}
+            <div className="h-[68px] flex items-center justify-between px-6 border-b border-[#D4A373]/20 bg-[#FAF7F2] shrink-0">
+              <div className="flex flex-col leading-none">
+                <span className="font-sans text-[11px] tracking-[0.28em] uppercase text-[#1C1917] font-medium">
+                  {SITE.name}
+                </span>
+                <span className="font-sans text-[9px] tracking-[0.32em] uppercase text-[#C25E3E] mt-0.5">
+                  Bordeaux
+                </span>
+              </div>
+              <button
+                ref={closeButtonRef}
+                type="button"
+                onClick={() => setOpen(false)}
+                className="text-[#1C1917] p-2 hover:text-[#C25E3E] transition-colors rounded-full"
+                aria-label="Fermer le menu"
+              >
+                <X size={24} aria-hidden="true" />
               </button>
             </div>
 
+            {/* Liens de navigation avec typographie élégante */}
             <motion.nav
-              className="flex flex-col px-6 pt-10 overflow-y-auto"
+              className="flex flex-col px-8 py-6 overflow-y-auto"
               aria-label="Navigation mobile"
               initial="hidden"
               animate="visible"
               variants={{
-                visible: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
+                visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
               }}
             >
-              {NAV_LINKS.map((l) => (
+              {NAV_LINKS.map((l, index) => (
                 <motion.a
                   key={l.label}
                   href={l.href}
                   onClick={() => setOpen(false)}
-                  className="font-serif text-[32px] italic text-foreground border-b border-border py-6 hover:text-primary transition-colors"
+                  className="group flex items-baseline justify-between font-serif text-[30px] italic text-[#1C1917] border-b border-[#D4A373]/15 py-4 hover:text-[#C25E3E] transition-colors"
                   variants={{
-                    hidden: { opacity: 0, y: 12 },
-                    visible: { opacity: 1, y: 0 },
+                    hidden: { opacity: 0, x: -15 },
+                    visible: { opacity: 1, x: 0 },
                   }}
                 >
-                  {l.label}
+                  <span>{l.label}</span>
+                  <span className="font-sans text-[10px] tracking-widest text-[#D4A373] not-italic">
+                    0{index + 1}
+                  </span>
                 </motion.a>
               ))}
             </motion.nav>
 
-            <div className="mt-auto p-6 border-t border-border">
+            {/* Pied de menu avec les boutons d'action */}
+            <div className="p-6 border-t border-[#D4A373]/20 bg-[#F3EDE3]/60 shrink-0 flex flex-col gap-3">
               <a
                 href="#devis"
                 onClick={() => setOpen(false)}
-                className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-sans text-[11px] tracking-[0.22em] uppercase py-4 hover:bg-[#A84F33] transition-colors"
+                className="w-full flex items-center justify-center gap-2 bg-[#C25E3E] hover:bg-[#a84d30] text-[#FAF7F2] font-sans text-[11px] tracking-[0.22em] uppercase py-4 shadow-sm transition-all"
               >
                 Demander un Devis
-                <ChevronRight size={13} aria-hidden="true" />
+                <ChevronRight size={14} aria-hidden="true" />
               </a>
               <a
                 href={CONTACT.phoneLink}
-                className="w-full flex items-center justify-center gap-2 mt-3 font-sans text-[11px] tracking-[0.16em] uppercase text-foreground py-3"
+                className="w-full text-center font-sans text-[11px] tracking-[0.16em] uppercase text-[#1C1917] py-2 hover:text-[#C25E3E] transition-colors"
               >
                 {CONTACT.phoneDisplay}
               </a>
