@@ -8,16 +8,16 @@ export const SITE = {
   name: "Les Saveurs de la Méditerranée",
   legalName: "Les Saveurs de la Méditerranée SARL",
   tagline: "Traiteur marocain & méditerranéen à Bordeaux",
-  foundedYear: 2008,
+  foundedYear: 2018,
   url: "https://www.saveurs-mediterranee.fr",
   description:
-    "Traiteur marocain et méditerranéen haut de gamme à Bordeaux depuis 2008 : mariages, réceptions privées, séminaires d'entreprise et couscous royal en Gironde.",
+    "Traiteur marocain et méditerranéen haut de gamme à Bordeaux depuis 2018 : mariages, réceptions privées, séminaires d'entreprise et couscous royal en Gironde.",
 };
 
 export const CONTACT = {
-  phoneDisplay: "05 56 00 00 00",
-  phoneLink: "tel:+33556000000",
-  whatsappLink: "https://wa.me/33556000000",
+  phoneDisplay: "06 68 68 51 05",
+  phoneLink: "tel:+33668685105",
+  whatsappLink: "https://wa.me/33668685105",
   email: "contact@saveurs-mediterranee.fr",
   address: {
     street: "12 rue du Commerce",
@@ -52,6 +52,10 @@ export const SERVICE_ZONES = [
   "Mérignac",
   "Pessac",
   "Talence",
+  'Eysines',
+  "Floirac",
+  "Villenave-d'Ornon",
+  "Le Bouscat",
   "Gradignan",
   "Bègles",
   "Cenon",
